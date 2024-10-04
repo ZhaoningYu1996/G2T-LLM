@@ -7,7 +7,7 @@ Briefly summarize the purpose of the project, its scope, and its results.
 - [Abstract or Summary](#abstract-or-summary)
 - [Installation](#installation)
 - [Usage](#usage)
-    -[Data Preparation](#data-preparation)
+    - [Data Preparation](#data-preparation)
 - [Custom Usage](#data-description)
 - [Methodology](#methodology)
 - [Results](#results)
