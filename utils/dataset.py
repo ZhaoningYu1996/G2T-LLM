@@ -5,7 +5,7 @@ import requests
 import pandas as pd
 import json
 from rdkit import Chem
-from utils.smiles2json import smiles_to_tree, custom_json_serializer
+from utils.smiles2tree import smiles_to_tree, custom_json_serializer
 from utils.utils import sanitize_smiles
 from tqdm import tqdm
 from utils.config import AtomTypeEnumZinc, BondTypeEnumZinc, AtomTypeEnumQM9, BondTypeEnumQM9
@@ -49,7 +49,7 @@ class G2TDataset(Dataset):
         return atom_set
     
     def format_data(self, num_samples, atom_format, atom_type_enum, output_path: str):
-        print("Formatting data...")
+        print("Sampling and formatting data...")
         # Define the schema for the Atom class
         class_schema = json.dumps(atom_format.model_json_schema(), indent=0)
         data_list = []
@@ -59,9 +59,9 @@ class G2TDataset(Dataset):
         for smiles in tqdm(self.dataset[:num_samples]):
             smiles = sanitize_smiles(smiles)
             if smiles is not None:
-                json_data = smiles_to_tree(smiles, kekulize=self.kekulize, addHs=self.addHs)
-                input_schema = json.dumps(atom_format(atom_id=0, atom_name=atom_type_enum(json_data.atom_name.value), bonds=[]).dict(), indent=0, default=custom_json_serializer)
-                start_set[json_data.atom_name.value] += 1
+                json_data = smiles_to_tree(self.data_name, smiles, kekulize=self.kekulize, addHs=self.addHs)
+                input_schema = json.dumps(atom_format(atom_id=0, atom_type=atom_type_enum(json_data.atom_type.value), bonds=[]).dict(), indent=0, default=custom_json_serializer)
+                start_set[json_data.atom_type.value] += 1
                 response_schema = json.dumps(json_data.dict(), indent=0, default=custom_json_serializer)
                 data = {
                     "instruction": f"Please generate a valid tree structure molecule from the following starting structure. You must respond using JSON format, according to the following schema: {class_schema}.",
@@ -94,12 +94,13 @@ class G2TDataset(Dataset):
                 file.write(smiles + '\n')
 
     def prep_dataset(self):
+        print("Preparing dataset...")
         self.dataset = []
         self.valid_set = []
         train_set = []
         for idx, row in tqdm(self.raw_data.iterrows(), total=self.raw_data.shape[0]):
             if self.data_name == 'zinc250k':
-                smiles = row['smiles']
+                smiles = row['smile']
             elif self.data_name == 'qm9':
                 smiles = row['SMILES1']
             smiles = sanitize_smiles(smiles)
