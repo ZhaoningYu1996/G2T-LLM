@@ -4,11 +4,11 @@ import json
 from utils.dataset import G2TDataset
 
 argparser = argparse.ArgumentParser(description='Preprocess the data')
-argparser.add_argument('--data_name', type=str, default='zinc250k', help='Name of the dataset')
-argparser.add_argument('--num_samples', type=int, default=100, help='Number of samples to process')
-argparser.add_argument('--output_path', type=str, default='data/', help='Path to save the processed data')
+argparser.add_argument('--data_name', type=str, default='qm9', help='Name of the dataset')
+argparser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to process')
+argparser.add_argument('--output_path', type=str, default='data/processed/', help='Path to save the processed data')
 argparser.add_argument('--addHs', type=bool, default=False, help='Add hydrogens to the molecule')
-argparser.add_argument('--kekulize', type=bool, default=False, help='Kekulize the molecule')
+argparser.add_argument('--kekulize', type=bool, default=True, help='Kekulize the molecule')
 args = argparser.parse_args()
 
 if args.data_name == 'zinc250k':
@@ -27,4 +27,6 @@ elif args.data_name == 'qm9':
 else:
     raise ValueError(f"Invalid dataset name: {args.data_name}")
 
-G2TDataset(data_name="zinc250k", raw_data=raw_data, valid_idx=valid_idx, output_path=args.output_path, num_samples=args.num_samples, addHs=False, kekulize=False)
+output_path = args.output_path + args.data_name + '/' + str(args.num_samples) + '/'
+
+G2TDataset(data_name=args.data_name, raw_data=raw_data, valid_idx=valid_idx, output_path=output_path, num_samples=args.num_samples, addHs=args.addHs, kekulize=args.kekulize)
