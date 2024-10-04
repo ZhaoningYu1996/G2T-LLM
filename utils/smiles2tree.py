@@ -53,7 +53,7 @@ def smiles_to_tree(data_name: str, smiles: str, kekulize=None, addHs=None):
             if (current_idx, neighbor_idx) not in added_bonds:
                 neighbor_bond_type = (str(bond.GetBondType()).replace("BondType.", ""))
                 if neighbor_idx not in atom_idx_to_atom:
-                    neighbor_atom = atom_format(atom_id=neighbor_idx, atom_name=atom_type_enum(mol.GetAtomWithIdx(neighbor_idx).GetSymbol()), bonds=[])
+                    neighbor_atom = atom_format(atom_id=neighbor_idx, atom_type=atom_type_enum(mol.GetAtomWithIdx(neighbor_idx).GetSymbol()), bonds=[])
                     atom_idx_to_atom[neighbor_idx] = neighbor_atom
                 queue.append((current_idx, neighbor_idx, neighbor_bond_type))
                 added_bonds.add((current_idx, neighbor_idx))
