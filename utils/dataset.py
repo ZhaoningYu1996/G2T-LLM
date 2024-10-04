@@ -1,8 +1,6 @@
 import os
-from torch_geometric.data import download_url
 from torch.utils.data import Dataset
 import requests
-import pandas as pd
 import json
 from rdkit import Chem
 from utils.smiles2tree import smiles_to_tree, custom_json_serializer

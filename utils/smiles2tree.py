@@ -1,11 +1,7 @@
 from rdkit import Chem
-from rdkit.Chem import BondType
-from pydantic import BaseModel
 from utils.config import AtomTypeEnumZinc, BondTypeEnumZinc, AtomTypeEnumQM9, BondTypeEnumQM9
-from typing import List
 import json
 from enum import Enum
-from collections import deque
 from utils.format import create_mol_format
 
 def smiles_to_tree(data_name: str, smiles: str, kekulize=None, addHs=None):

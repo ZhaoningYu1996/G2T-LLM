@@ -1,15 +1,5 @@
-import torch
-import os
-import logging
 import re
-import copy
-import numpy as np
-import torch.nn.functional as F
-import networkx as nx
-from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem, rdMolDescriptors
-from rdkit.Chem.Descriptors import MolLogP, qed
-from rdkit.Chem import rdmolops
+from rdkit import Chem
 
 bond_decoder_m = {1: Chem.rdchem.BondType.SINGLE, 2: Chem.rdchem.BondType.DOUBLE, 3: Chem.rdchem.BondType.TRIPLE}
 
