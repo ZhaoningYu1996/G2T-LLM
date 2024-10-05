@@ -27,8 +27,13 @@ python preprocess.py --data_name dataset --num_samples num_samples
 Please replace **dataset** with *zinc250k* or *qm9* to produce the dataset we need in the experiments.
 Please set **num_samples** to a number you want, in our experiments, we usually start from __5000__.
 
-## Data Description
-Details about the datasets used in the project, including how to access them if public.
+### Fine-tuning
+This project is using [TorchTune](https://pytorch.org/torchtune/0.3/) **QLoRA** to fine-tune a Llama 3.1-8B LLM.
+If you are not familiar with **TorchTune**, please refer to the [official document](https://pytorch.org/torchtune/0.3/) for detailed explanation.
+
+```bash
+tune run lora_finetune_single_device --config llama3_1/8B_qlora_single_device
+```
 
 ## Methodology
 Explanation of the methods used in the project, potentially simplified for understanding.
