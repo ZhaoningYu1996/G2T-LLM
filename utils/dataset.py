@@ -1,42 +1,20 @@
 import os
 from torch.utils.data import Dataset
-import requests
 import json
+import csv
 from rdkit import Chem
+from tqdm import tqdm
+from collections import defaultdict
 from utils.smiles2tree import smiles_to_tree, custom_json_serializer
 from utils.utils import sanitize_smiles
-from tqdm import tqdm
-from utils.config import AtomTypeEnumZinc, BondTypeEnumZinc, AtomTypeEnumQM9, BondTypeEnumQM9
-from utils.format import create_mol_format
-from collections import defaultdict
+from utils.sample_fragment import sample_fragment
+from torchtune.data import AlpacaInstructTemplate
 
 class G2TDataset(Dataset):
-    def __init__(self, data_name, raw_data, valid_idx, output_path, num_samples:int, addHs: bool = False, kekulize: bool = False):
-            self.raw_data = raw_data
-            self.valid_idx = valid_idx
-            if data_name == 'zinc250k':
-                atom_format, _ = create_mol_format(AtomTypeEnumZinc, BondTypeEnumZinc)
-                atom_type_enum = AtomTypeEnumZinc
-            elif data_name == 'qm9':
-                atom_format, _ = create_mol_format(AtomTypeEnumQM9, BondTypeEnumQM9)
-                atom_type_enum = AtomTypeEnumQM9
-            self.addHs = addHs
-            self.kekulize = kekulize
-            self.data_name = data_name
-            self.prep_dataset()
-            self.format_data(num_samples, atom_format, atom_type_enum, output_path)
-            
-    # Function to download the dataset if it doesn't exist
-    def download_dataset(self, url: str, dest_path: str):
-        if not os.path.exists(dest_path):
-            print(f"Downloading dataset from {url} to {dest_path}")
-            response = requests.get(url)
-            response.raise_for_status()  # Will stop the script if the download fails
-            with open(dest_path, 'wb') as f:
-                f.write(response.content)
-            print("Download complete.")
-        else:
-            print("Dataset already downloaded.")
+    def __init__(self, data_name, raw_data, key, valid_idx, atom_format, bond_format, atom_type_enum, output_path, num_samples:int):
+        self.data_name = data_name
+        self.prep_dataset(raw_data, key, valid_idx)
+        self.format_data(num_samples, atom_format, bond_format, atom_type_enum, output_path)
 
     def get_atom_set(self):
         atom_set = set([])
@@ -46,7 +24,7 @@ class G2TDataset(Dataset):
                 atom_set.add(atom.GetSymbol())
         return atom_set
     
-    def format_data(self, num_samples, atom_format, atom_type_enum, output_path: str):
+    def format_data(self, num_samples, atom_format, bond_format, atom_type_enum, output_path: str):
         print("Sampling and formatting data...")
         # Define the schema for the Atom class
         class_schema = json.dumps(atom_format.model_json_schema(), indent=0)
@@ -57,7 +35,7 @@ class G2TDataset(Dataset):
         for smiles in tqdm(self.dataset[:num_samples]):
             smiles = sanitize_smiles(smiles)
             if smiles is not None:
-                json_data = smiles_to_tree(self.data_name, smiles, kekulize=self.kekulize, addHs=self.addHs)
+                json_data = smiles_to_tree(atom_format, bond_format, atom_type_enum, smiles)
                 input_schema = json.dumps(atom_format(atom_id=0, atom_type=atom_type_enum(json_data.atom_type.value), bonds=[]).dict(), indent=0, default=custom_json_serializer)
                 start_set[json_data.atom_type.value] += 1
                 response_schema = json.dumps(json_data.dict(), indent=0, default=custom_json_serializer)
@@ -91,23 +69,15 @@ class G2TDataset(Dataset):
             for smiles in smiles_list:
                 file.write(smiles + '\n')
 
-    def prep_dataset(self):
+    def prep_dataset(self, raw_data, key, valid_idx):
         print("Preparing dataset...")
-        self.dataset = []
-        self.valid_set = []
         train_set = []
-        for idx, row in tqdm(self.raw_data.iterrows(), total=self.raw_data.shape[0]):
-            if self.data_name == 'zinc250k':
-                smiles = row['smile']
-            elif self.data_name == 'qm9':
-                smiles = row['SMILES1']
+        for idx, row in tqdm(raw_data.iterrows(), total=raw_data.shape[0]):
+            smiles = row[key]
             smiles = sanitize_smiles(smiles)
             if smiles is not None:
-                if idx in self.valid_idx:
-                    self.valid_set.append(smiles)
-                else:
+                if idx not in valid_idx:
                     train_set.append(smiles)
-        print(f"Number of valid data: {len(self.valid_set)}")
         print(f"Number of train data: {len(train_set)}")
         # Shuffle the train set
         import random
@@ -115,9 +85,32 @@ class G2TDataset(Dataset):
         self.dataset = train_set
 
 
-    def __len__(self):
-         return len(self.data)
+class SampleDataset(Dataset):
+    def __init__(self, atom_format, bond_format, atom_type_enum, start_dict, num_samples, output_path):
+        self.sample_dataset(atom_format, bond_format, atom_type_enum, start_dict, num_samples, output_path)
 
+    def sample_dataset(self, atom_format, bond_format, atom_type_enum, start_dict, num_samples, output_path):
+        print("Sampling data...")
+        class_schema = json.dumps(atom_format.model_json_schema(), indent=0)
+        samples_list = []
+        for _ in tqdm(range(num_samples), desc='Generating molecules', total=num_samples):
+            start_input = sample_fragment(start_dict, "distributed")
+            input_json = smiles_to_tree(atom_format, bond_format, atom_type_enum, start_input)
+            input_schema = json.dumps(input_json.dict(), indent=0, default=custom_json_serializer)
+            sample = {
+                "instruction": f'Please generate a valid molecule from the following starting structure. You must respond using JSON format, according to the following schema: {class_schema}.',
+                "input": f"{input_schema}",
+                "output": "",
+            }
+            prompt = AlpacaInstructTemplate.format(sample)
+            samples_list.append(prompt)
+        with open(output_path+'samples.json', 'w') as file:
+            json_sample = json.dumps(samples_list, indent=0)
+            file.write(json_sample)
+        # with open(output_path+'samples.csv', 'w', newline='') as file:
+        #     writer = csv.writer(file)
+        #     for s in samples_list:
+        #         writer.writerow([s]) 
 
 # if __name__ == "__main__":
 #     file_path = 'datasets/zinc250k_train.json'

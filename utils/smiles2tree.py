@@ -1,22 +1,16 @@
 from rdkit import Chem
-from utils.config import AtomTypeEnumZinc, BondTypeEnumZinc, AtomTypeEnumQM9, BondTypeEnumQM9
 import json
 from enum import Enum
-from utils.format import create_mol_format
 
-def smiles_to_tree(data_name: str, smiles: str, kekulize=None, addHs=None):
-    if data_name == 'zinc250k':
-        atom_format, bond_format = create_mol_format(AtomTypeEnumZinc, BondTypeEnumZinc)
-        atom_type_enum = AtomTypeEnumZinc
-    elif data_name == 'qm9':
-        atom_format, bond_format = create_mol_format(AtomTypeEnumQM9, BondTypeEnumQM9)
-        atom_type_enum = AtomTypeEnumQM9
+bond_type_mapping = {
+    "SINGLE": 1,
+    "DOUBLE": 2,
+    "TRIPLE": 3,
+}
+
+def smiles_to_tree(atom_format, bond_format, atom_type_enum, smiles: str):
     mol = Chem.MolFromSmiles(smiles)
-    if kekulize:
-        Chem.Kekulize(mol, clearAromaticFlags=True)
-
-    if addHs:
-        mol = Chem.AddHs(mol)
+    Chem.Kekulize(mol, clearAromaticFlags=True)
     atom_idx_to_atom = {}
     visited_atoms = set()
     queue = []
@@ -47,7 +41,8 @@ def smiles_to_tree(data_name: str, smiles: str, kekulize=None, addHs=None):
         for bond in mol.GetAtomWithIdx(current_idx).GetBonds():
             neighbor_idx = bond.GetOtherAtomIdx(current_idx)
             if (current_idx, neighbor_idx) not in added_bonds:
-                neighbor_bond_type = (str(bond.GetBondType()).replace("BondType.", ""))
+                # neighbor_bond_type = (str(bond.GetBondType()).replace("BondType.", ""))
+                neighbor_bond_type = bond_type_mapping[str(bond.GetBondType()).replace("BondType.", "")]
                 if neighbor_idx not in atom_idx_to_atom:
                     neighbor_atom = atom_format(atom_id=neighbor_idx, atom_type=atom_type_enum(mol.GetAtomWithIdx(neighbor_idx).GetSymbol()), bonds=[])
                     atom_idx_to_atom[neighbor_idx] = neighbor_atom

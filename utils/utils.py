@@ -58,6 +58,7 @@ def correct_mol(mol):
 def sanitize_smiles(smiles):
     try:
         mol = Chem.MolFromSmiles(smiles)
+        Chem.Kekulize(mol, clearAromaticFlags=True)
         return Chem.MolToSmiles(mol)
     except:
         return None
