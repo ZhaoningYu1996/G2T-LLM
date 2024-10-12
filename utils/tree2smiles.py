@@ -23,12 +23,13 @@ def add_bond(mol, atom_data, atom_id_map):
         if bond['atom']['atom_type'] == "H":
             continue
         adj_index = bond['atom']['atom_id']
-        bond_type_str = bond['bond_type'].upper()
-        if bond_type_str == "DOUBLE":
+        # bond_type_str = bond['bond_type'].upper()
+        bond_type_str = bond['bond_type']
+        if bond_type_str == 2:
             bond_type = Chem.rdchem.BondType.DOUBLE
-        elif bond_type_str == "TRIPLE":
+        elif bond_type_str == 3:
             bond_type = Chem.rdchem.BondType.TRIPLE
-        elif bond_type_str == "SINGLE":
+        elif bond_type_str == 1:
             bond_type = Chem.rdchem.BondType.SINGLE
         # elif bond_type_str == "AROMATIC":
         #     bond_type = Chem.rdchem.BondType.AROMATIC
