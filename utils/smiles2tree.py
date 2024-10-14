@@ -10,7 +10,7 @@ from enum import Enum
 
 def smiles_to_tree(atom_format, bond_format, atom_type_enum, smiles: str):
     mol = Chem.MolFromSmiles(smiles)
-    Chem.Kekulize(mol, clearAromaticFlags=True)
+    # Chem.Kekulize(mol, clearAromaticFlags=True)
     atom_idx_to_atom = {}
     visited_atoms = set()
     queue = []
