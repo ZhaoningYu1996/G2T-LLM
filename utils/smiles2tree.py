@@ -2,11 +2,11 @@ from rdkit import Chem
 import json
 from enum import Enum
 
-bond_type_mapping = {
-    "SINGLE": 1,
-    "DOUBLE": 2,
-    "TRIPLE": 3,
-}
+# bond_type_mapping = {
+#     "SINGLE": 1,
+#     "DOUBLE": 2,
+#     "TRIPLE": 3,
+# }
 
 def smiles_to_tree(atom_format, bond_format, atom_type_enum, smiles: str):
     mol = Chem.MolFromSmiles(smiles)
@@ -41,8 +41,8 @@ def smiles_to_tree(atom_format, bond_format, atom_type_enum, smiles: str):
         for bond in mol.GetAtomWithIdx(current_idx).GetBonds():
             neighbor_idx = bond.GetOtherAtomIdx(current_idx)
             if (current_idx, neighbor_idx) not in added_bonds:
-                # neighbor_bond_type = (str(bond.GetBondType()).replace("BondType.", ""))
-                neighbor_bond_type = bond_type_mapping[str(bond.GetBondType()).replace("BondType.", "")]
+                neighbor_bond_type = (str(bond.GetBondType()).replace("BondType.", ""))
+                # neighbor_bond_type = bond_type_mapping[str(bond.GetBondType()).replace("BondType.", "")]
                 if neighbor_idx not in atom_idx_to_atom:
                     neighbor_atom = atom_format(atom_id=neighbor_idx, atom_type=atom_type_enum(mol.GetAtomWithIdx(neighbor_idx).GetSymbol()), bonds=[])
                     atom_idx_to_atom[neighbor_idx] = neighbor_atom

@@ -23,16 +23,16 @@ def add_bond(mol, atom_data, atom_id_map):
         if bond['atom']['atom_type'] == "H":
             continue
         adj_index = bond['atom']['atom_id']
-        # bond_type_str = bond['bond_type'].upper()
-        bond_type_str = bond['bond_type']
-        if bond_type_str == 2:
+        bond_type_str = bond['bond_type'].upper()
+        # bond_type_str = bond['bond_type']
+        if bond_type_str == 'DOUBLE':
             bond_type = Chem.rdchem.BondType.DOUBLE
-        elif bond_type_str == 3:
+        elif bond_type_str == 'TRIPLE':
             bond_type = Chem.rdchem.BondType.TRIPLE
-        elif bond_type_str == 1:
+        elif bond_type_str == 'SINGLE':
             bond_type = Chem.rdchem.BondType.SINGLE
-        # elif bond_type_str == "AROMATIC":
-        #     bond_type = Chem.rdchem.BondType.AROMATIC
+        elif bond_type_str == "AROMATIC":
+            bond_type = Chem.rdchem.BondType.AROMATIC
         else:
             raise ValueError(f"Invalid bond type: {bond_type_str}")
 
@@ -67,8 +67,8 @@ def tree2smiles(molecule_data, do_correct=False):
                 print(f"idx: {idx}, v: {v}, an: {an}")
                 if an in (7, 8, 16) and (v - ATOM_VALENCY[an]) == 1:
                     mol.GetAtomWithIdx(idx).SetFormalCharge(1)
-                else:
-                    return None
+                # else:
+                #     return None
             except Exception as e:
                 return None
 

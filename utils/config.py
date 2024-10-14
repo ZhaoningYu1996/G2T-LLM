@@ -11,11 +11,11 @@ class AtomTypeEnumZinc(str, Enum):
     Cl = "Cl"
     O = "O"
 
-class BondTypeEnumZinc(IntEnum):
-    SINGLE = 1
-    DOUBLE = 2
-    TRIPLE = 3
-    # AROMATIC = 'AROMATIC'
+class BondTypeEnumZinc(Enum):
+    SINGLE = 'SINGLE'
+    DOUBLE = 'DOUBLE'
+    TRIPLE = 'TRIPLE'
+    AROMATIC = 'AROMATIC'
 
 class AtomTypeEnumQM9(Enum):
     O = 'O'
@@ -23,8 +23,8 @@ class AtomTypeEnumQM9(Enum):
     F = 'F'
     N = 'N'
 
-class BondTypeEnumQM9(IntEnum):
-    SINGLE = 1
-    DOUBLE = 2
-    TRIPLE = 3
-    # AROMATIC = 'AROMATIC'
+class BondTypeEnumQM9(Enum):
+    SINGLE = 'SINGLE'
+    DOUBLE = 'DOUBLE'
+    TRIPLE = 'TRIPLE'
+    AROMATIC = 'AROMATIC'
