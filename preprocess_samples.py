@@ -8,13 +8,13 @@ from utils.config import AtomTypeEnumZinc, BondTypeEnumZinc, AtomTypeEnumQM9, Bo
 
 argparser = argparse.ArgumentParser(description='Preprocess the data')
 argparser.add_argument('--data_name', type=str, default='qm9', help='Name of the dataset')
-argparser.add_argument('--start_dict', type=dict, default={'C': 1412, 'O': 336, 'N': 251, 'F': 1})
-argparser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to process')
+argparser.add_argument('--start_dict', type=dict, default={"C": 7080, "O": 1602, "N": 1307, "F": 11})
+argparser.add_argument('--num_samples', type=int, default=14000, help='Number of samples to process')
 argparser.add_argument('--index', type=int, default=0)
 argparser.add_argument('--output_path', type=str, default='data/sampled/', help='Path to save the processed data')
 args = argparser.parse_args()
 
-if args.data_name == 'zinc250k':
+if args.data_name == 'zinc':
     raw_file_path = 'data/raw/zinc250k_property.csv'
     valid_idx_path = 'data/raw/valid_idx_zinc250k.json'
     raw_data = pd.read_csv(raw_file_path)

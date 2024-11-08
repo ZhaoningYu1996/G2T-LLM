@@ -6,12 +6,12 @@ from utils.format import create_mol_format
 from utils.config import AtomTypeEnumZinc, BondTypeEnumZinc, AtomTypeEnumQM9, BondTypeEnumQM9
 
 argparser = argparse.ArgumentParser(description='Preprocess the data')
-argparser.add_argument('--data_name', type=str, default='qm9', help='Name of the dataset')
-argparser.add_argument('--num_samples', type=int, default=5000, help='Number of samples to process')
+argparser.add_argument('--data_name', type=str, default='zinc', help='Name of the dataset')
+argparser.add_argument('--num_samples', type=int, default=30000, help='Number of samples to process')
 argparser.add_argument('--output_path', type=str, default='data/processed/', help='Path to save the processed data')
 args = argparser.parse_args()
 
-if args.data_name == 'zinc250k':
+if args.data_name == 'zinc':
     raw_file_path = 'data/raw/zinc250k_property.csv'
     valid_idx_path = 'data/raw/valid_idx_zinc250k.json'
     raw_data = pd.read_csv(raw_file_path)
