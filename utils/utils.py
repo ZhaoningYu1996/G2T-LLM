@@ -55,10 +55,30 @@ def correct_mol(mol):
     return mol, no_correct
 
 # Sanitize and kekulize the SMILES
-def sanitize_smiles(smiles):
-    try:
-        mol = Chem.MolFromSmiles(smiles)
+# def sanitize_smiles(smiles):
+#     try:
+#         mol = Chem.MolFromSmiles(smiles)
+#         Chem.Kekulize(mol, clearAromaticFlags=True)
+#         return Chem.MolToSmiles(mol)
+#     except:
+#         return None
+
+def sanitize_smiles(smiles, kekulize=True):
+    mol = Chem.MolFromSmiles(smiles)
+    mol = sanitize_mol(mol)
+    if mol is None:
+        return None
+    if kekulize:
         Chem.Kekulize(mol, clearAromaticFlags=True)
-        return Chem.MolToSmiles(mol)
+
+    return Chem.MolToSmiles(mol)
+
+def sanitize_mol(mol):
+    try:
+        smiles = Chem.MolToSmiles(mol)
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return None
     except:
         return None
+    return mol

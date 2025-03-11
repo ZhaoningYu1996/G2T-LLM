@@ -32,6 +32,7 @@ def smiles_to_tree(atom_format, bond_format, atom_type_enum, smiles: str):
             if current_idx in visited_atoms:
                 current_atom = atom_format(atom_id=current_idx, atom_type=atom_type_enum(mol.GetAtomWithIdx(current_idx).GetSymbol()), bonds=[])
             parent_atom = atom_idx_to_atom[parent_idx]
+            # print(bond_type)
             bond = bond_format(atom=current_atom, bond_type=bond_type)
             parent_atom.bonds.append(bond)
             visited_atoms.add(current_idx)
@@ -43,6 +44,8 @@ def smiles_to_tree(atom_format, bond_format, atom_type_enum, smiles: str):
             if (current_idx, neighbor_idx) not in added_bonds:
                 neighbor_bond_type = (str(bond.GetBondType()).replace("BondType.", ""))
                 # neighbor_bond_type = bond_type_mapping[str(bond.GetBondType()).replace("BondType.", "")]
+                if neighbor_bond_type == "DATIVE":
+                    neighbor_bond_type = "SINGLE"
                 if neighbor_idx not in atom_idx_to_atom:
                     neighbor_atom = atom_format(atom_id=neighbor_idx, atom_type=atom_type_enum(mol.GetAtomWithIdx(neighbor_idx).GetSymbol()), bonds=[])
                     atom_idx_to_atom[neighbor_idx] = neighbor_atom

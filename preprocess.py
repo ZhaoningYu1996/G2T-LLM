@@ -3,12 +3,12 @@ import pandas as pd
 import json
 from utils.dataset import G2TDataset
 from utils.format import create_mol_format
-from utils.config import AtomTypeEnumZinc, BondTypeEnumZinc, AtomTypeEnumQM9, BondTypeEnumQM9
+from utils.config import AtomTypeEnumZinc, BondTypeEnumZinc, AtomTypeEnumQM9, BondTypeEnumQM9, AtomTypeEnum, BondTypeEnum
 
 argparser = argparse.ArgumentParser(description='Preprocess the data')
-argparser.add_argument('--data_name', type=str, default='zinc', help='Name of the dataset')
-argparser.add_argument('--num_samples', type=int, default=30000, help='Number of samples to process')
-argparser.add_argument('--output_path', type=str, default='data/processed/', help='Path to save the processed data')
+argparser.add_argument('--data_name', type=str, default='hiv', help='Name of the dataset')
+argparser.add_argument('--num_samples', type=int, default=32900, help='Number of samples to process')
+argparser.add_argument('--output_path', type=str, default='data/processed/rand_split_no_start/', help='Path to save the processed data')
 args = argparser.parse_args()
 
 if args.data_name == 'zinc':
@@ -32,6 +32,14 @@ elif args.data_name == 'qm9':
     bond_type_enum = BondTypeEnumQM9
     atom_format, bond_format = create_mol_format(atom_type_enum, bond_type_enum)
     key = 'SMILES1'
+elif args.data_name == 'hiv':
+    raw_file_path = 'data/raw/rand_train_smiles.csv'
+    raw_data = pd.read_csv(raw_file_path)
+    valid_idx = []
+    atom_type_enum = AtomTypeEnum
+    bond_type_enum = BondTypeEnum
+    atom_format, bond_format = create_mol_format(atom_type_enum, bond_type_enum)
+    key = 'smiles'
 else:
     raise ValueError(f"Invalid dataset name: {args.data_name}")
 

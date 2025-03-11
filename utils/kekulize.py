@@ -20,14 +20,31 @@ def check_kekulize(mol):
         return smiles
     except Exception as e:
         print("Kekulization failed after aromaticity adjustment:", e)
-        
+    
+    # If aromaticity adjustment fails, attempt explicit bond adjustments
+    emol = Chem.EditableMol(mol)
+    for bond in mol.GetBonds():
+        if bond.GetBondType() == Chem.BondType.AROMATIC:
+            # Try changing aromatic bonds to single or double
+            emol.RemoveBond(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx())
+            emol.AddBond(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), order=Chem.BondType.SINGLE)
+
+    modified_mol = emol.GetMol()
     try:
-        for atom in mol.GetAtoms():
+        Chem.SanitizeMol(modified_mol)
+        print("Molecule fixed after modifying bonds.")
+        smiles = Chem.MolToSmiles(modified_mol)
+        return smiles
+    except Exception as e:
+        print("Attempt to fix by modifying bonds failed:", e)
+
+    try:
+        for atom in modified_mol.GetAtoms():
             atom.SetIsAromatic(False)
-        for bond in mol.GetBonds():
+        for bond in modified_mol.GetBonds():
             bond.SetIsAromatic(False)
-        Chem.SanitizeMol(mol)
-        smiles = Chem.MolToSmiles(mol)
+        Chem.SanitizeMol(modified_mol)
+        smiles = Chem.MolToSmiles(modified_mol)
         print("Molecule fixed after change aromatic.")
         return smiles
     except Exception as e:

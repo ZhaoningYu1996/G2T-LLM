@@ -7,11 +7,12 @@ from utils.format import create_mol_format
 from utils.config import AtomTypeEnumZinc, BondTypeEnumZinc, AtomTypeEnumQM9, BondTypeEnumQM9
 
 argparser = argparse.ArgumentParser(description='Preprocess the data')
-argparser.add_argument('--data_name', type=str, default='qm9', help='Name of the dataset')
-argparser.add_argument('--start_dict', type=dict, default={"C": 7080, "O": 1602, "N": 1307, "F": 11})
-argparser.add_argument('--num_samples', type=int, default=14000, help='Number of samples to process')
+argparser.add_argument('--data_name', type=str, default='zinc', help='Name of the dataset')
+# argparser.add_argument('--start_dict', type=dict, default={"C": 7080, "O": 1602, "N": 1307})
+argparser.add_argument('--input_path', type=str, default='data/processed/zinc/10000/input_list/zinc.json')
+argparser.add_argument('--num_samples', type=int, default=500, help='Number of samples to process')
 argparser.add_argument('--index', type=int, default=0)
-argparser.add_argument('--output_path', type=str, default='data/sampled/', help='Path to save the processed data')
+argparser.add_argument('--output_path', type=str, default='data/sampled/long_input/', help='Path to save the processed data')
 args = argparser.parse_args()
 
 if args.data_name == 'zinc':
@@ -41,4 +42,4 @@ output_path = args.output_path + args.data_name + '/' + str(args.num_samples) + 
 if not os.path.exists(output_path):
     os.makedirs(output_path)
 
-SampleDataset(atom_format=atom_format, bond_format=bond_format, atom_type_enum=atom_type_enum, start_dict=args.start_dict, num_samples=args.num_samples, output_path=output_path)
+SampleDataset(atom_format=atom_format, bond_format=bond_format, atom_type_enum=atom_type_enum, input_path=args.input_path, num_samples=args.num_samples, output_path=output_path)

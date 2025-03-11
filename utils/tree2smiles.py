@@ -23,8 +23,8 @@ def add_bond(mol, atom_data, atom_id_map):
         if bond['atom']['atom_type'] == "H":
             continue
         adj_index = bond['atom']['atom_id']
-        bond_type_str = bond['bond_type'].upper()
-        # bond_type_str = bond['bond_type']
+        # bond_type_str = bond['bond_type'].upper()
+        bond_type_str = bond['bond_type']
         if bond_type_str == 'DOUBLE':
             bond_type = Chem.rdchem.BondType.DOUBLE
         elif bond_type_str == 'TRIPLE':
@@ -67,19 +67,39 @@ def tree2smiles(molecule_data, do_correct=False):
                 print(f"idx: {idx}, v: {v}, an: {an}")
                 if an in (7, 8, 16) and (v - ATOM_VALENCY[an]) == 1:
                     mol.GetAtomWithIdx(idx).SetFormalCharge(1)
-                # else:
-                #     return None
-            except Exception as e:
-                return None
+                    smiles = Chem.MolToSmiles(mol, isomericSmiles=True)
+                    print("Molecule fixed after adjusting formal charge.")
+                    return smiles
 
-    mol = mol.GetMol()
+            except Exception as e:
+                print(f"incorrect valence check")
+                pass
+
+    # mol = mol.GetMol()
+    # try:
+    #     Chem.SanitizeMol(mol)
+    #     # Chem.Kekulize(mol, clearAromaticFlags=True)
+    #     smiles = Chem.MolToSmiles(mol)
+    #     smiles = sanitize_smiles(smiles)
+    # except Exception as e:
+    #     smiles = check_kekulize(mol)
+
+    # if not smiles:
+    #     print("Invalid molecule")
+    # return smiles
     try:
+        mol = mol.GetMol()
+        from rdkit.Chem import AllChem
         Chem.SanitizeMol(mol)
-        # Chem.Kekulize(mol, clearAromaticFlags=True)
-        smiles = Chem.MolToSmiles(mol)
+        Chem.Kekulize(mol, clearAromaticFlags=True)
+        # rdmolops.Kekulize(mol)
+        smiles = Chem.MolToSmiles(mol, isomericSmiles=True)
         smiles = sanitize_smiles(smiles)
     except Exception as e:
+        print(f"Wrong mol to smiles")
+        # Clear existing aromaticity flags and redefine aromaticity
         smiles = check_kekulize(mol)
+
 
     if not smiles:
         print("Invalid molecule")
