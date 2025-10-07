@@ -1,5 +1,8 @@
 import re
 from rdkit import Chem
+from rdkit.Chem import rdchem
+from rdkit.Chem import rdmolops
+from rdkit import RDLogger
 
 bond_decoder_m = {1: Chem.rdchem.BondType.SINGLE, 2: Chem.rdchem.BondType.DOUBLE, 3: Chem.rdchem.BondType.TRIPLE}
 
@@ -82,3 +85,16 @@ def sanitize_mol(mol):
     except:
         return None
     return mol
+
+def get_mol(smiles, addH=False):
+    RDLogger.DisableLog('rdApp.*')  
+    mol = Chem.MolFromSmiles(smiles)
+    if addH == True:
+        mol = Chem.AddHs(mol)
+    Chem.Kekulize(mol, clearAromaticFlags=True) # Add clearAromaticFlags to avoid error
+    return mol
+
+def get_smiles(mol):
+    RDLogger.DisableLog('rdApp.*') 
+    smiles = Chem.MolToSmiles(mol)
+    return smiles

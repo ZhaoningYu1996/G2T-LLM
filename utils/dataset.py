@@ -9,7 +9,7 @@ from collections import defaultdict
 from utils.smiles2tree import smiles_to_tree, custom_json_serializer
 from utils.utils import sanitize_smiles
 from utils.sample_fragment import sample_fragment
-from torchtune.data import AlpacaInstructTemplate
+# from torchtune.data import AlpacaInstructTemplate
 from transformers import AutoTokenizer
 
 class G2TDataset(Dataset):
@@ -28,10 +28,12 @@ class G2TDataset(Dataset):
     
     def format_data(self, num_samples, atom_format, bond_format, atom_type_enum, output_path: str):
         print("Sampling and formatting data...")
-        tokenizer = AutoTokenizer.from_pretrained('meta-llama/Meta-Llama-3.1-8B-Instruct')
+        # tokenizer = AutoTokenizer.from_pretrained('meta-llama/Meta-Llama-3.1-8B-Instruct')
         # Define the schema for the Atom class
         class_schema = json.dumps(atom_format.model_json_schema(), indent=0)
         data_list = []
+        positive_list = []
+        negative_list = []
         smiles_list = []
         label_0_list = []
         label_1_list = []
@@ -55,31 +57,33 @@ class G2TDataset(Dataset):
                 response_schema = json.dumps(json_data.dict(), indent=0, default=custom_json_serializer)
                 if label == 0:
                     data = {
-                        "instruction": f"Please generate a valid hiv molecule with label 0. You must respond using JSON format, according to the following schema: {class_schema}.",
-                        "input": "",
+                        "instruction": f"Please generate a valid molecule. You must respond using JSON format, according to the following schema: {class_schema}.",
+                        "input": "The generated molecule should be mutagen.",
                         "output": f"{response_schema}"
                     }
+                    negative_list.append(data)
                 elif label == 1:
                     data = {
-                        "instruction": f"Please generate a valid hiv molecule with label 1. You must respond using JSON format, according to the following schema: {class_schema}.",
-                        "input": "",
+                        "instruction": f"Please generate a valid molecule. You must respond using JSON format, according to the following schema: {class_schema}.",
+                        "input": "The generated molecule should be nonmutagen.",
                         "output": f"{response_schema}"
                     }
+                    positive_list.append(data)
                 
                 count = 0
-                for key in data.keys():
-                    if key in ['instruction', 'input', 'output']:
-                        tokens = tokenizer.encode(data[key], add_special_tokens=True)  # Ensure special tokens are considered
-                        count += len(tokens)
-                if count <= 5000:
-                    data_list.append(data)
-                    smiles_list.append(smiles)
-                    start_dict[input_schema].append(data)
-                    start_count[input_schema] += 1
-                    if label == 0:
-                        label_0_list.append(smiles)
-                    else:
-                        label_1_list.append(smiles)
+                # for key in data.keys():
+                #     if key in ['instruction', 'input', 'output']:
+                #         tokens = tokenizer.encode(data[key], add_special_tokens=True)  # Ensure special tokens are considered
+                #         count += len(tokens)
+                # if count <= 5000:
+                data_list.append(data)
+                smiles_list.append(smiles)
+                start_dict[input_schema].append(data)
+                start_count[input_schema] += 1
+                if label == 0:
+                    label_0_list.append(smiles)
+                else:
+                    label_1_list.append(smiles)
         print(f"Number of label 1 data: {len(label_1_list)}")
         print(f"Number of label 0 data: {len(label_0_list)}")
         
@@ -127,6 +131,17 @@ class G2TDataset(Dataset):
             os.makedirs(os.path.dirname(output_path+"/json/"))
         with open(output_path+"/json/"+self.data_name+".json", 'w') as file:
             file.write(json.dumps(data_list, indent=0))
+
+        # Write the positive_list into a json file
+        if not os.path.exists(os.path.dirname(output_path+"/positive/")):
+            os.makedirs(os.path.dirname(output_path+"/positive/"))
+        with open(output_path+"/positive/"+self.data_name+".json", 'w') as file:
+            file.write(json.dumps(positive_list, indent=0))
+        # Write the negative_list into a json file
+        if not os.path.exists(os.path.dirname(output_path+"/negative/")):
+            os.makedirs(os.path.dirname(output_path+"/negative/"))
+        with open(output_path+"/negative/"+self.data_name+".json", 'w') as file:
+            file.write(json.dumps(negative_list, indent=0))
 
         # Write the smiles_list into a txt file
         if not os.path.exists(os.path.dirname(output_path+"smiles/")):

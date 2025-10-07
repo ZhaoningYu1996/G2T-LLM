@@ -12,6 +12,8 @@ def create_mol_format(atom_type_enum, bond_type_enum):
         atom: Atom
         bond_type: bond_type_enum
     
+    Atom.model_rebuild()
+    Bond.model_rebuild()
     return Atom, Bond
 
 # class Atom_id(BaseModel):
